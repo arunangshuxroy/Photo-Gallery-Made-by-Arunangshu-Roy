@@ -151,6 +151,7 @@ function addGalleryItem({ filename, url, thumb_url, size }) {
   img.alt = filename;
   img.loading = "lazy";
   img.style.cursor = "pointer";
+  img.onerror = () => { img.onerror = null; img.src = url; };
   img.addEventListener("click", () => openLightbox(url));
 
   const footer = document.createElement("div");
