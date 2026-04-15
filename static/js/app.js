@@ -13,7 +13,21 @@ const imageCount = document.getElementById("imageCount");
 const modalOverlay = document.getElementById("modalOverlay");
 const confirmDelete = document.getElementById("confirmDelete");
 const cancelDelete = document.getElementById("cancelDelete");
-const lightboxOverlay = document.getElementById("lightboxOverlay");
+const themeToggle = document.getElementById("themeToggle");
+const themeIcon = themeToggle.querySelector(".theme-icon");
+
+const savedTheme = localStorage.getItem("theme") || "light";
+document.documentElement.setAttribute("data-theme", savedTheme);
+themeIcon.textContent = savedTheme === "dark" ? "🌙" : "☀️";
+
+themeToggle.addEventListener("click", () => {
+  const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", next);
+  localStorage.setItem("theme", next);
+  themeIcon.textContent = next === "dark" ? "🌙" : "☀️";
+});
+
+
 const lightboxImg = document.getElementById("lightboxImg");
 const lightboxClose = document.getElementById("lightboxClose");
 
