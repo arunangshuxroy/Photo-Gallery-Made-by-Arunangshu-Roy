@@ -125,7 +125,14 @@ h1 {
   color: var(--text-muted);
 }
 
-/* ── Theme toggle ── */
+.credits-thanks {
+  font-size: 10px;
+  color: var(--text-muted);
+  opacity: 0.6;
+  margin-top: 3px;
+  font-style: italic;
+}
+
 .theme-toggle {
   background: var(--surface);
   backdrop-filter: var(--blur);
