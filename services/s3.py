@@ -1,5 +1,7 @@
 import boto3
 import os
+import io
+from PIL import Image
 from botocore.exceptions import ClientError
 
 
@@ -13,25 +15,55 @@ def _client():
 
 
 BUCKET = lambda: os.environ["S3_BUCKET_NAME"]
+THUMB_PREFIX = "thumbs/"
+THUMB_SIZE = (400, 400)
+
+
+def _make_thumbnail(file_obj):
+    img = Image.open(file_obj)
+    img.thumbnail(THUMB_SIZE, Image.LANCZOS)
+    buf = io.BytesIO()
+    fmt = "JPEG" if img.mode in ("RGB", "L") else "PNG"
+    if img.mode == "RGBA":
+        fmt = "PNG"
+    else:
+        img = img.convert("RGB")
+        fmt = "JPEG"
+    img.save(buf, format=fmt, quality=75, optimize=True)
+    buf.seek(0)
+    return buf, "image/jpeg" if fmt == "JPEG" else "image/png"
 
 
 def upload_file(file_obj, filename, content_type):
-    _client().upload_fileobj(
-        file_obj,
-        BUCKET(),
-        filename,
+    client = _client()
+    # Read once into memory
+    data = file_obj.read()
+
+    # Upload original
+    client.upload_fileobj(
+        io.BytesIO(data), BUCKET(), filename,
         ExtraArgs={"ContentType": content_type},
+    )
+
+    # Upload thumbnail
+    thumb_buf, thumb_ct = _make_thumbnail(io.BytesIO(data))
+    client.upload_fileobj(
+        thumb_buf, BUCKET(), THUMB_PREFIX + filename,
+        ExtraArgs={"ContentType": thumb_ct},
     )
 
 
 def list_files():
     response = _client().list_objects_v2(Bucket=BUCKET())
     objects = response.get("Contents", [])
+    # Only original files, not thumbs
+    objects = [o for o in objects if not o["Key"].startswith(THUMB_PREFIX)]
     objects.sort(key=lambda x: x["LastModified"], reverse=True)
     return [
         {
             "filename": obj["Key"],
             "url": presigned_url(obj["Key"]),
+            "thumb_url": presigned_url(THUMB_PREFIX + obj["Key"]),
             "size": obj["Size"],
         }
         for obj in objects
@@ -39,7 +71,9 @@ def list_files():
 
 
 def delete_file(filename):
-    _client().delete_object(Bucket=BUCKET(), Key=filename)
+    client = _client()
+    client.delete_object(Bucket=BUCKET(), Key=filename)
+    client.delete_object(Bucket=BUCKET(), Key=THUMB_PREFIX + filename)
 
 
 def presigned_url(filename, expiry=3600):

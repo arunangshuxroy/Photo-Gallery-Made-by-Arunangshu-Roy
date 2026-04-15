@@ -141,13 +141,13 @@ async function loadGallery() {
   }
 }
 
-function addGalleryItem({ filename, url, size }) {
+function addGalleryItem({ filename, url, thumb_url, size }) {
   const item = document.createElement("div");
   item.className = "gallery-item";
   item.dataset.filename = filename;
 
   const img = document.createElement("img");
-  img.src = url;
+  img.src = thumb_url;
   img.alt = filename;
   img.loading = "lazy";
   img.style.cursor = "pointer";
@@ -179,6 +179,11 @@ function formatSize(bytes) {
 // ── Delete ──
 
 function openDeleteModal(filename) {
+  const pwd = prompt("Enter password to delete:");
+  if (pwd !== "2026") {
+    setStatus("Incorrect password.", "error");
+    return;
+  }
   pendingDelete = filename;
   modalOverlay.hidden = false;
 }
