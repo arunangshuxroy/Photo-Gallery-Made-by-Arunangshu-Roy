@@ -80,7 +80,24 @@
   <div class="modal-overlay" id="lightboxOverlay" hidden>
     <div class="lightbox">
       <button class="lightbox-close" id="lightboxClose">✕</button>
-      <img id="lightboxImg" src="" alt="" />
+      <div class="lightbox-skeleton" id="lightboxSkeleton"></div>
+      <img id="lightboxImg" src="" alt="" hidden />
+      <div class="lightbox-controls" id="lightboxControls" hidden>
+        <div class="slider-row">
+          <label>Brightness</label>
+          <input type="range" id="brightnessSlider" min="0.2" max="2" step="0.01" value="1" />
+          <span id="brightnessVal">1.00</span>
+        </div>
+        <div class="slider-row">
+          <label>Saturation</label>
+          <input type="range" id="saturationSlider" min="0" max="3" step="0.01" value="1" />
+          <span id="saturationVal">1.00</span>
+        </div>
+        <div class="lightbox-actions">
+          <button class="btn-ghost" id="resetEdits">Reset</button>
+          <button class="btn-primary" id="saveEdits">Save to S3</button>
+        </div>
+      </div>
     </div>
   </div>
 

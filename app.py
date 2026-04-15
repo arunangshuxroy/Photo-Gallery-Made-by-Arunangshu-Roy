@@ -51,7 +51,19 @@ def images():
         return jsonify({"error": str(e)}), 500
 
 
-@app.route("/delete/<filename>", methods=["DELETE"])
+@app.route("/edit/<filename>", methods=["POST"])
+def edit(filename):
+    data = request.get_json()
+    try:
+        brightness = float(data.get("brightness", 1.0))
+        saturation = float(data.get("saturation", 1.0))
+        s3.edit_file(filename, brightness, saturation)
+        return jsonify({"url": s3.presigned_url(filename), "thumb_url": s3.presigned_url(s3.THUMB_PREFIX + filename)})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+
 def delete(filename):
     try:
         s3.delete_file(filename)

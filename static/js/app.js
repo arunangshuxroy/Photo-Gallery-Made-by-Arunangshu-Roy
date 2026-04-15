@@ -30,23 +30,100 @@ themeToggle.addEventListener("click", () => {
 
 const lightboxImg = document.getElementById("lightboxImg");
 const lightboxClose = document.getElementById("lightboxClose");
+const brightnessSlider = document.getElementById("brightnessSlider");
+const saturationSlider = document.getElementById("saturationSlider");
+const brightnessVal = document.getElementById("brightnessVal");
+const saturationVal = document.getElementById("saturationVal");
+const saveEdits = document.getElementById("saveEdits");
+const resetEdits = document.getElementById("resetEdits");
+const lightboxSkeleton = document.getElementById("lightboxSkeleton");
+const lightboxControls = document.getElementById("lightboxControls");
 
-let pendingDelete = null;
+let lightboxFilename = null;
 
 // ── Lightbox ──
 
-function openLightbox(url) {
-  lightboxImg.src = url;
+function applyFilter() {
+  lightboxImg.style.filter = `brightness(${brightnessSlider.value}) saturate(${saturationSlider.value})`;
+  brightnessVal.textContent = parseFloat(brightnessSlider.value).toFixed(2);
+  saturationVal.textContent = parseFloat(saturationSlider.value).toFixed(2);
+}
+
+brightnessSlider.addEventListener("input", applyFilter);
+saturationSlider.addEventListener("input", applyFilter);
+
+resetEdits.addEventListener("click", () => {
+  brightnessSlider.value = 1;
+  saturationSlider.value = 1;
+  applyFilter();
+});
+
+saveEdits.addEventListener("click", async () => {
+  if (!lightboxFilename) return;
+  saveEdits.disabled = true;
+  saveEdits.textContent = "Saving…";
+  try {
+    const res = await fetch(`/edit/${lightboxFilename}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        brightness: parseFloat(brightnessSlider.value),
+        saturation: parseFloat(saturationSlider.value),
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Save failed.");
+    // Update gallery thumbnail
+    const item = galleryGrid.querySelector(`[data-filename="${lightboxFilename}"]`);
+    if (item) {
+      const thumb = item.querySelector("img");
+      thumb.src = data.thumb_url;
+    }
+    lightboxImg.src = data.url;
+    brightnessSlider.value = 1;
+    saturationSlider.value = 1;
+    applyFilter();
+    saveEdits.textContent = "Saved ✓";
+    setTimeout(() => { saveEdits.textContent = "Save to S3"; saveEdits.disabled = false; }, 1500);
+  } catch (err) {
+    saveEdits.textContent = "Save to S3";
+    saveEdits.disabled = false;
+    setStatus(err.message, "error");
+  }
+});
+
+function openLightbox(url, filename) {
+  lightboxFilename = filename;
+  lightboxImg.hidden = true;
+  lightboxControls.hidden = true;
+  lightboxSkeleton.hidden = false;
+  lightboxImg.style.filter = "";
+  brightnessSlider.value = 1;
+  saturationSlider.value = 1;
+  brightnessVal.textContent = "1.00";
+  saturationVal.textContent = "1.00";
   lightboxOverlay.hidden = false;
+  lightboxImg.onload = () => {
+    lightboxSkeleton.hidden = true;
+    lightboxImg.hidden = false;
+    lightboxControls.hidden = false;
+  };
+  lightboxImg.src = url;
 }
 
 function closeLightbox() {
   lightboxOverlay.hidden = true;
   lightboxImg.src = "";
+  lightboxImg.hidden = true;
+  lightboxControls.hidden = true;
+  lightboxSkeleton.hidden = false;
+  lightboxFilename = null;
 }
 
 lightboxClose.addEventListener("click", closeLightbox);
 lightboxOverlay.addEventListener("click", (e) => { if (e.target === lightboxOverlay) closeLightbox(); });
+
+let pendingDelete = null;
 
 // ── File selection ──
 
@@ -166,7 +243,7 @@ function addGalleryItem({ filename, url, thumb_url, size }) {
   img.loading = "lazy";
   img.style.cursor = "pointer";
   img.onerror = () => { img.onerror = null; img.src = url; };
-  img.addEventListener("click", () => openLightbox(url));
+  img.addEventListener("click", () => openLightbox(url, filename));
 
   const footer = document.createElement("div");
   footer.className = "item-footer";

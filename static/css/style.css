@@ -430,17 +430,114 @@ main {
   max-width: 90vw;
   max-height: 90vh;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  gap: 16px;
+}
+
+.lightbox-skeleton {
+  width: min(70vw, 560px);
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius);
+  background: var(--surface);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  box-shadow: var(--shadow-glass);
+  overflow: hidden;
+  position: relative;
+}
+
+.lightbox-skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(255,255,255,0.18) 45%,
+    rgba(255,255,255,0.32) 50%,
+    rgba(255,255,255,0.18) 55%,
+    transparent 100%
+  );
+  animation: skeleton-pulse 1.6s ease-in-out infinite;
+  background-size: 100% 300%;
+}
+
+[data-theme="dark"] .lightbox-skeleton::after {
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(255,255,255,0.06) 45%,
+    rgba(255,255,255,0.12) 50%,
+    rgba(255,255,255,0.06) 55%,
+    transparent 100%
+  );
+  background-size: 100% 300%;
+}
+
+@keyframes skeleton-pulse {
+  0%   { background-position: 0% 0%; }
+  100% { background-position: 0% 100%; }
 }
 
 .lightbox img {
   max-width: 90vw;
-  max-height: 90vh;
+  max-height: 70vh;
   object-fit: contain;
   border-radius: var(--radius);
   box-shadow: 0 2px 0 rgba(255,255,255,0.15) inset,
               0 32px 80px rgba(0,0,0,0.5);
+  transition: filter 0.1s ease;
+}
+
+.lightbox-controls {
+  background: var(--surface);
+  backdrop-filter: var(--blur);
+  -webkit-backdrop-filter: var(--blur);
+  box-shadow: var(--shadow-glass);
+  border-radius: 16px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 480px;
+}
+
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.slider-row label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  width: 72px;
+  flex-shrink: 0;
+}
+
+.slider-row input[type="range"] {
+  flex: 1;
+  accent-color: var(--accent);
+  height: 4px;
+  cursor: pointer;
+}
+
+.slider-row span {
+  font-size: 12px;
+  color: var(--text-muted);
+  width: 34px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.lightbox-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 2px;
 }
 
 .lightbox-close {
