@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Photo Gallery — AWS S3</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <div>
+        <h1>Photo Gallery</h1>
+        <p class="subtitle">Cloud Storage via AWS S3</p>
+      </div>
+      <div class="credits">
+        <span>Arunangshu Roy · 23BCS11789</span>
+        <span>Mayank Singhal · 23BCS13014</span>
+        <span>Uzma Abshar · 23BCS12158</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+    <section class="upload-section">
+      <div class="upload-box" id="uploadBox">
+        <input type="file" id="fileInput" accept="image/jpeg,image/png" hidden />
+        <div class="upload-prompt" id="uploadPrompt">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          <p>Click to select an image</p>
+          <span>JPEG or PNG · Max 10 MB</span>
+        </div>
+        <div class="preview-container" id="previewContainer" hidden>
+          <img id="previewImg" src="" alt="Preview" />
+          <button class="clear-btn" id="clearBtn" type="button">✕</button>
+        </div>
+      </div>
+
+      <div class="upload-actions">
+        <button class="btn-primary" id="uploadBtn" disabled>Upload</button>
+        <span class="status-msg" id="statusMsg"></span>
+      </div>
+    </section>
+
+    <section class="gallery-section">
+      <div class="gallery-header">
+        <h2>Gallery</h2>
+        <span class="image-count" id="imageCount"></span>
+      </div>
+      <div class="loader" id="loader" hidden>
+        <div class="spinner"></div>
+      </div>
+      <div class="gallery-grid" id="galleryGrid"></div>
+      <p class="empty-state" id="emptyState" hidden>No images yet. Upload one above.</p>
+    </section>
+
+  </main>
+
+  <div class="modal-overlay" id="modalOverlay" hidden>
+    <div class="modal">
+      <p>Delete this image?</p>
+      <div class="modal-actions">
+        <button class="btn-ghost" id="cancelDelete">Cancel</button>
+        <button class="btn-danger" id="confirmDelete">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="lightboxOverlay" hidden>
+    <div class="lightbox">
+      <button class="lightbox-close" id="lightboxClose">✕</button>
+      <img id="lightboxImg" src="" alt="" />
+    </div>
+  </div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
