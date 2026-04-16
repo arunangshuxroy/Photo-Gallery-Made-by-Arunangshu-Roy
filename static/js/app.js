@@ -322,3 +322,210 @@ function setStatus(msg, type = "") {
 
 // ── Init ──
 loadGallery();
+
+// ── Tab Navigation ──
+
+const tabBtns = document.querySelectorAll(".tab-btn");
+const tabPanels = document.querySelectorAll(".tab-panel");
+
+tabBtns.forEach(btn => {
+  btn.addEventListener("click", () => {
+    tabBtns.forEach(b => b.classList.remove("active"));
+    tabPanels.forEach(p => { p.hidden = true; });
+    btn.classList.add("active");
+    const panel = document.getElementById(`tab-${btn.dataset.tab}`);
+    if (panel) panel.hidden = false;
+    if (btn.dataset.tab === "exhibition") initExhibition();
+  });
+});
+
+// ── Exhibition / Coverflow ──
+
+const cfTrack    = document.getElementById("cfTrack");
+const cfTitle    = document.getElementById("cfTitle");
+const cfDots     = document.getElementById("cfDots");
+const cfPrev     = document.getElementById("cfPrev");
+const cfNext     = document.getElementById("cfNext");
+const cfEmpty    = document.getElementById("cfEmpty");
+const cfReflection = document.getElementById("cfReflection");
+
+const SLIDE_W    = 280;   // px spacing between slide centres
+const SIDE_ROT   = 55;    // deg rotation for off-centre slides
+const SIDE_TRANS = 0.38;  // x-translation factor for side slides
+const SIDE_SCALE = 0.82;
+const SIDE_OPACITY = 0.55;
+const VISIBLE_SIDES = 3;  // slides visible each side of centre
+
+let cfImages   = [];
+let cfIndex    = 0;
+let cfLoaded   = false;
+let cfAutoplay = null;
+
+async function initExhibition() {
+  if (cfLoaded) { renderCF(); return; }
+  try {
+    const res  = await fetch("/images");
+    const data = await res.json();
+    cfImages = Array.isArray(data) ? data : [];
+  } catch { cfImages = []; }
+
+  cfLoaded = true;
+
+  if (!cfImages.length) {
+    cfEmpty.hidden = false;
+    return;
+  }
+
+  cfEmpty.hidden = true;
+  buildSlides();
+  buildDots();
+  renderCF();
+  startAutoplay();
+}
+
+function buildSlides() {
+  cfTrack.innerHTML = "";
+  cfImages.forEach((img, i) => {
+    const slide = document.createElement("div");
+    slide.className = "cf-slide";
+    slide.dataset.index = i;
+    const el = document.createElement("img");
+    el.src = img.thumb_url || img.url;
+    el.alt = img.filename;
+    el.loading = "lazy";
+    el.onerror = () => { el.onerror = null; el.src = img.url; };
+    slide.appendChild(el);
+    slide.addEventListener("click", () => { cfIndex = i; renderCF(); resetAutoplay(); });
+    cfTrack.appendChild(slide);
+  });
+}
+
+function buildDots() {
+  cfDots.innerHTML = "";
+  cfImages.forEach((_, i) => {
+    const dot = document.createElement("div");
+    dot.className = "cf-dot" + (i === 0 ? " active" : "");
+    dot.addEventListener("click", () => { cfIndex = i; renderCF(); resetAutoplay(); });
+    cfDots.appendChild(dot);
+  });
+}
+
+function renderCF() {
+  const slides = cfTrack.querySelectorAll(".cf-slide");
+  const n = slides.length;
+
+  slides.forEach((slide, i) => {
+    const offset = i - cfIndex;
+    const absOff = Math.abs(offset);
+
+    if (absOff > VISIBLE_SIDES) {
+      slide.style.opacity = "0";
+      slide.style.pointerEvents = "none";
+      slide.style.zIndex = "0";
+      return;
+    }
+
+    const sign    = Math.sign(offset) || 0;
+    const tx      = offset * SLIDE_W - sign * SLIDE_W * SIDE_TRANS * Math.min(absOff, 1);
+    const ry      = absOff === 0 ? 0 : -sign * SIDE_ROT;
+    const scale   = absOff === 0 ? 1 : Math.pow(SIDE_SCALE, absOff);
+    const opacity = absOff === 0 ? 1 : Math.pow(SIDE_OPACITY, absOff) + 0.1;
+    const z       = 100 - absOff * 10;
+
+    slide.style.transform  = `translateX(${tx}px) rotateY(${ry}deg) scale(${scale})`;
+    slide.style.opacity    = opacity;
+    slide.style.zIndex     = z;
+    slide.style.pointerEvents = "auto";
+    slide.classList.toggle("active", absOff === 0);
+  });
+
+  // title
+  const cur = cfImages[cfIndex];
+  cfTitle.textContent = cur ? cur.filename.replace(/^[0-9a-f-]+_/, "").replace(/_/g, " ") : "";
+
+  // dots
+  cfDots.querySelectorAll(".cf-dot").forEach((d, i) => d.classList.toggle("active", i === cfIndex));
+
+  // reflection
+  updateReflection();
+}
+
+function updateReflection() {
+  cfReflection.innerHTML = "";
+  const cur = cfImages[cfIndex];
+  if (!cur) return;
+
+  const canvas = document.createElement("canvas");
+  canvas.width  = 260;
+  canvas.height = 90;
+  const ctx = canvas.getContext("2d");
+  const img = new Image();
+  img.crossOrigin = "anonymous";
+  img.onload = () => {
+    // draw image flipped vertically
+    ctx.save();
+    ctx.translate(0, canvas.height);
+    ctx.scale(1, -1);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    ctx.restore();
+    // fade gradient overlay
+    const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    grad.addColorStop(0, "rgba(0,0,0,0)");
+    grad.addColorStop(1, "rgba(0,0,0,0.85)");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  };
+  img.onerror = () => {};
+  img.src = cur.thumb_url || cur.url;
+  cfReflection.appendChild(canvas);
+}
+
+cfPrev.addEventListener("click", () => {
+  cfIndex = (cfIndex - 1 + cfImages.length) % cfImages.length;
+  renderCF();
+  resetAutoplay();
+});
+
+cfNext.addEventListener("click", () => {
+  cfIndex = (cfIndex + 1) % cfImages.length;
+  renderCF();
+  resetAutoplay();
+});
+
+// keyboard nav when exhibition is active
+document.addEventListener("keydown", (e) => {
+  const panel = document.getElementById("tab-exhibition");
+  if (panel && !panel.hidden) {
+    if (e.key === "ArrowLeft")  { cfIndex = (cfIndex - 1 + cfImages.length) % cfImages.length; renderCF(); resetAutoplay(); }
+    if (e.key === "ArrowRight") { cfIndex = (cfIndex + 1) % cfImages.length; renderCF(); resetAutoplay(); }
+  }
+});
+
+// touch/swipe
+let cfTouchX = null;
+document.getElementById("coverflow").addEventListener("touchstart", e => { cfTouchX = e.touches[0].clientX; }, { passive: true });
+document.getElementById("coverflow").addEventListener("touchend", e => {
+  if (cfTouchX === null) return;
+  const dx = e.changedTouches[0].clientX - cfTouchX;
+  if (Math.abs(dx) > 40) {
+    cfIndex = dx < 0
+      ? (cfIndex + 1) % cfImages.length
+      : (cfIndex - 1 + cfImages.length) % cfImages.length;
+    renderCF();
+    resetAutoplay();
+  }
+  cfTouchX = null;
+});
+
+function startAutoplay() {
+  cfAutoplay = setInterval(() => {
+    if (cfImages.length < 2) return;
+    cfIndex = (cfIndex + 1) % cfImages.length;
+    renderCF();
+  }, 4000);
+}
+
+function resetAutoplay() {
+  clearInterval(cfAutoplay);
+  startAutoplay();
+}

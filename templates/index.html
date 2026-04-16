@@ -10,10 +10,14 @@
 
   <header>
     <div class="header-inner">
-      <div>
+      <div class="header-left">
         <h1>Photo Gallery</h1>
         <p class="subtitle">Cloud Storage via AWS S3</p>
       </div>
+      <nav class="tab-nav">
+        <button class="tab-btn active" data-tab="archive">Archive</button>
+        <button class="tab-btn" data-tab="exhibition">Exhibition</button>
+      </nav>
       <div class="header-right">
         <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
           <span class="theme-icon">☀️</span>
@@ -30,6 +34,7 @@
 
   <main>
 
+    <section class="tab-panel" id="tab-archive">
     <section class="upload-section">
       <div class="upload-box" id="uploadBox">
         <input type="file" id="fileInput" accept="image/jpeg,image/png" hidden />
@@ -64,6 +69,27 @@
       </div>
       <div class="gallery-grid" id="galleryGrid"></div>
       <p class="empty-state" id="emptyState" hidden>No images yet. Upload one above.</p>
+    </section>
+    </section><!-- /tab-archive -->
+
+    <section class="tab-panel" id="tab-exhibition" hidden>
+      <div class="exhibition-wrap">
+        <div class="coverflow" id="coverflow">
+          <div class="cf-track" id="cfTrack"></div>
+        </div>
+        <div class="cf-reflection" id="cfReflection"></div>
+        <div class="cf-controls">
+          <button class="cf-btn" id="cfPrev" aria-label="Previous">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <span class="cf-title" id="cfTitle"></span>
+          <button class="cf-btn" id="cfNext" aria-label="Next">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+        <div class="cf-dots" id="cfDots"></div>
+        <p class="cf-empty" id="cfEmpty" hidden>No images yet. Upload some in Archive.</p>
+      </div>
     </section>
 
   </main>
