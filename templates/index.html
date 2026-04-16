@@ -8,20 +8,48 @@
 </head>
 <body>
 
+  <!-- Shared SVG distortion filter (CRD004 / BTN003 / all glass elements) -->
+  <svg style="display:none" aria-hidden="true">
+    <filter id="glass-distortion">
+      <feTurbulence type="turbulence" baseFrequency="0.008" numOctaves="2" result="noise" />
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="77" />
+    </filter>
+  </svg>
+
+  <!-- NAV002 — Liquid Glass Header -->
   <header>
     <div class="header-inner">
       <div class="header-left">
         <h1>Photo Gallery</h1>
         <p class="subtitle">Cloud Storage via AWS S3</p>
       </div>
-      <nav class="tab-nav">
-        <button class="tab-btn active" data-tab="archive">Archive</button>
-        <button class="tab-btn" data-tab="exhibition">Exhibition</button>
+
+      <!-- NAV002 tab nav with glass treatment -->
+      <nav class="glass-nav tab-nav" id="mainNav">
+        <div class="glass-filter"></div>
+        <div class="glass-overlay"></div>
+        <div class="glass-specular"></div>
+        <div class="glass-content nav-content">
+          <button class="tab-btn nav-item active" data-tab="archive">Archive</button>
+          <button class="tab-btn nav-item" data-tab="exhibition">Exhibition</button>
+        </div>
       </nav>
+
       <div class="header-right">
-        <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
-          <span class="theme-icon">☀️</span>
-        </button>
+        <!-- TGL001 — Liquid Glass Toggle (theme) -->
+        <label class="glass-toggle" id="themeToggleWrap" title="Toggle dark mode">
+          <input type="checkbox" class="toggle-input" id="themeToggle" />
+          <div class="toggle-track">
+            <div class="glass-filter"></div>
+            <div class="glass-overlay"></div>
+            <div class="glass-specular"></div>
+            <div class="toggle-thumb">
+              <div class="glass-overlay"></div>
+            </div>
+          </div>
+          <span class="toggle-label theme-icon" id="themeLabel">☀️</span>
+        </label>
+
         <div class="credits">
           <span>Arunangshu Roy · 23BCS11789</span>
           <span>Mayank Singhal · 23BCS13014</span>
@@ -34,44 +62,85 @@
 
   <main>
 
+    <!-- ── Archive Tab ── -->
     <section class="tab-panel" id="tab-archive">
-    <section class="upload-section">
-      <div class="upload-box" id="uploadBox">
-        <input type="file" id="fileInput" accept="image/jpeg,image/png" hidden />
-        <div class="upload-prompt" id="uploadPrompt">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="17 8 12 3 7 8"/>
-            <line x1="12" y1="3" x2="12" y2="15"/>
-          </svg>
-          <p>Click to select an image</p>
-          <span>JPEG or PNG · Max 10 MB</span>
-        </div>
-        <div class="preview-container" id="previewContainer" hidden>
-          <img id="previewImg" src="" alt="Preview" />
-          <button class="clear-btn" id="clearBtn" type="button">✕</button>
+
+      <!-- SRH002 — Liquid Glass Search -->
+      <div class="glass-search" id="gallerySearch">
+        <div class="glass-filter"></div>
+        <div class="glass-overlay"></div>
+        <div class="glass-specular"></div>
+        <div class="glass-content">
+          <div class="search-container" id="searchContainer">
+            <span class="search-icon">🔍</span>
+            <input class="search-input" id="searchInput" type="text" placeholder="Search gallery…" autocomplete="off" />
+            <button class="search-clear" id="searchClear" aria-label="Clear search">✕</button>
+          </div>
         </div>
       </div>
 
-      <div class="upload-actions">
-        <button class="btn-primary" id="uploadBtn" disabled>Upload</button>
-        <span class="status-msg" id="statusMsg"></span>
-      </div>
-    </section>
+      <!-- CRD004 — Liquid Glass Upload Card -->
+      <section class="upload-section">
+        <div class="glass-card upload-box" id="uploadBox">
+          <div class="glass-filter"></div>
+          <div class="glass-overlay"></div>
+          <div class="glass-specular"></div>
+          <div class="glass-content upload-card-content">
+            <input type="file" id="fileInput" accept="image/jpeg,image/png" hidden />
+            <div class="upload-prompt" id="uploadPrompt">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              <p>Click or drag to upload</p>
+              <span>JPEG or PNG · Max 10 MB</span>
+            </div>
+            <div class="preview-container" id="previewContainer" hidden>
+              <img id="previewImg" src="" alt="Preview" />
+              <button class="clear-btn" id="clearBtn" type="button">✕</button>
+            </div>
+          </div>
+        </div>
 
-    <section class="gallery-section">
-      <div class="gallery-header">
-        <h2>Gallery</h2>
-        <span class="image-count" id="imageCount"></span>
-      </div>
-      <div class="loader" id="loader" hidden>
-        <div class="spinner"></div>
-      </div>
-      <div class="gallery-grid" id="galleryGrid"></div>
-      <p class="empty-state" id="emptyState" hidden>No images yet. Upload one above.</p>
-    </section>
+        <div class="upload-actions">
+          <!-- BTN003 — Liquid Glass Upload Button -->
+          <button class="glass-button" id="uploadBtn" disabled>
+            <div class="glass-filter"></div>
+            <div class="glass-overlay"></div>
+            <div class="glass-specular"></div>
+            <span class="glass-content">Upload</span>
+          </button>
+          <span class="status-msg" id="statusMsg"></span>
+        </div>
+      </section>
+
+      <section class="gallery-section">
+        <div class="gallery-header">
+          <h2>Gallery</h2>
+          <span class="image-count" id="imageCount"></span>
+        </div>
+
+        <!-- LDR003 — Liquid Glass Spinner -->
+        <div class="loader" id="loader" hidden>
+          <div class="glass-spinner">
+            <div class="glass-filter"></div>
+            <div class="glass-overlay"></div>
+            <div class="glass-specular"></div>
+            <div class="glass-content">
+              <div class="spinner-ring"></div>
+              <div class="spinner-core"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="gallery-grid" id="galleryGrid"></div>
+        <p class="empty-state" id="emptyState" hidden>No images yet. Upload one above.</p>
+      </section>
+
     </section><!-- /tab-archive -->
 
+    <!-- ── Exhibition Tab ── -->
     <section class="tab-panel" id="tab-exhibition" hidden>
       <div class="exhibition-wrap">
         <div class="coverflow" id="coverflow">
@@ -79,12 +148,22 @@
         </div>
         <div class="cf-reflection" id="cfReflection"></div>
         <div class="cf-controls">
-          <button class="cf-btn" id="cfPrev" aria-label="Previous">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          <!-- BTN003 — glass prev/next -->
+          <button class="glass-button cf-btn" id="cfPrev" aria-label="Previous">
+            <div class="glass-filter"></div>
+            <div class="glass-overlay"></div>
+            <div class="glass-specular"></div>
+            <span class="glass-content">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </span>
           </button>
-          <span class="cf-title" id="cfTitle"></span>
-          <button class="cf-btn" id="cfNext" aria-label="Next">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          <button class="glass-button cf-btn" id="cfNext" aria-label="Next">
+            <div class="glass-filter"></div>
+            <div class="glass-overlay"></div>
+            <div class="glass-specular"></div>
+            <span class="glass-content">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </span>
           </button>
         </div>
         <div class="cf-dots" id="cfDots"></div>
@@ -94,35 +173,75 @@
 
   </main>
 
+  <!-- Delete Modal -->
   <div class="modal-overlay" id="modalOverlay" hidden>
-    <div class="modal">
-      <p>Delete this image?</p>
-      <div class="modal-actions">
-        <button class="btn-ghost" id="cancelDelete">Cancel</button>
-        <button class="btn-danger" id="confirmDelete">Delete</button>
+    <!-- CRD004 — glass modal card -->
+    <div class="glass-card modal">
+      <div class="glass-filter"></div>
+      <div class="glass-overlay"></div>
+      <div class="glass-specular"></div>
+      <div class="glass-content modal-inner">
+        <p>Delete this image?</p>
+        <div class="modal-actions">
+          <button class="glass-button btn-ghost" id="cancelDelete">
+            <div class="glass-filter"></div>
+            <div class="glass-overlay"></div>
+            <div class="glass-specular"></div>
+            <span class="glass-content">Cancel</span>
+          </button>
+          <button class="glass-button btn-danger" id="confirmDelete">
+            <div class="glass-filter"></div>
+            <div class="glass-overlay"></div>
+            <div class="glass-specular"></div>
+            <span class="glass-content">Delete</span>
+          </button>
+        </div>
       </div>
     </div>
   </div>
 
+  <!-- Lightbox -->
   <div class="modal-overlay" id="lightboxOverlay" hidden>
     <div class="lightbox">
-      <button class="lightbox-close" id="lightboxClose">✕</button>
+      <!-- BTN003 — glass close button -->
+      <button class="glass-button lightbox-close" id="lightboxClose">
+        <div class="glass-filter"></div>
+        <div class="glass-overlay"></div>
+        <div class="glass-specular"></div>
+        <span class="glass-content">✕</span>
+      </button>
       <div class="lightbox-skeleton" id="lightboxSkeleton"></div>
       <img id="lightboxImg" src="" alt="" hidden />
-      <div class="lightbox-controls" id="lightboxControls" hidden>
-        <div class="slider-row">
-          <label>Brightness</label>
-          <input type="range" id="brightnessSlider" min="0.2" max="2" step="0.01" value="1" />
-          <span id="brightnessVal">1.00</span>
-        </div>
-        <div class="slider-row">
-          <label>Saturation</label>
-          <input type="range" id="saturationSlider" min="0" max="3" step="0.01" value="1" />
-          <span id="saturationVal">1.00</span>
-        </div>
-        <div class="lightbox-actions">
-          <button class="btn-ghost" id="resetEdits">Reset</button>
-          <button class="btn-primary" id="saveEdits">Save to S3</button>
+      <!-- CRD004 — glass controls card -->
+      <div class="glass-card lightbox-controls" id="lightboxControls" hidden>
+        <div class="glass-filter"></div>
+        <div class="glass-overlay"></div>
+        <div class="glass-specular"></div>
+        <div class="glass-content lightbox-controls-inner">
+          <div class="slider-row">
+            <label>Brightness</label>
+            <input type="range" id="brightnessSlider" min="0.2" max="2" step="0.01" value="1" />
+            <span id="brightnessVal">1.00</span>
+          </div>
+          <div class="slider-row">
+            <label>Saturation</label>
+            <input type="range" id="saturationSlider" min="0" max="3" step="0.01" value="1" />
+            <span id="saturationVal">1.00</span>
+          </div>
+          <div class="lightbox-actions">
+            <button class="glass-button btn-ghost" id="resetEdits">
+              <div class="glass-filter"></div>
+              <div class="glass-overlay"></div>
+              <div class="glass-specular"></div>
+              <span class="glass-content">Reset</span>
+            </button>
+            <button class="glass-button btn-primary" id="saveEdits">
+              <div class="glass-filter"></div>
+              <div class="glass-overlay"></div>
+              <div class="glass-specular"></div>
+              <span class="glass-content">Save to S3</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

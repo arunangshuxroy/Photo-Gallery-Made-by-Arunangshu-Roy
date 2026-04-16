@@ -14,17 +14,18 @@ const modalOverlay = document.getElementById("modalOverlay");
 const confirmDelete = document.getElementById("confirmDelete");
 const cancelDelete = document.getElementById("cancelDelete");
 const themeToggle = document.getElementById("themeToggle");
-const themeIcon = themeToggle.querySelector(".theme-icon");
+const themeLabel  = document.getElementById("themeLabel");
 
 const savedTheme = localStorage.getItem("theme") || "light";
 document.documentElement.setAttribute("data-theme", savedTheme);
-themeIcon.textContent = savedTheme === "dark" ? "🌙" : "☀️";
+themeToggle.checked = savedTheme === "dark";
+themeLabel.textContent = savedTheme === "dark" ? "🌙" : "☀️";
 
-themeToggle.addEventListener("click", () => {
-  const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+themeToggle.addEventListener("change", () => {
+  const next = themeToggle.checked ? "dark" : "light";
   document.documentElement.setAttribute("data-theme", next);
   localStorage.setItem("theme", next);
-  themeIcon.textContent = next === "dark" ? "🌙" : "☀️";
+  themeLabel.textContent = next === "dark" ? "🌙" : "☀️";
 });
 
 
@@ -234,8 +235,13 @@ async function loadGallery() {
 
 function addGalleryItem({ filename, url, thumb_url, size }) {
   const item = document.createElement("div");
-  item.className = "gallery-item";
+  item.className = "gallery-item glass-card";
   item.dataset.filename = filename;
+
+  // glass layers
+  ["glass-filter", "glass-overlay", "glass-specular"].forEach(cls => {
+    const d = document.createElement("div"); d.className = cls; item.appendChild(d);
+  });
 
   const img = document.createElement("img");
   img.src = thumb_url;
@@ -342,7 +348,6 @@ tabBtns.forEach(btn => {
 // ── Exhibition / Coverflow ──
 
 const cfTrack    = document.getElementById("cfTrack");
-const cfTitle    = document.getElementById("cfTitle");
 const cfDots     = document.getElementById("cfDots");
 const cfPrev     = document.getElementById("cfPrev");
 const cfNext     = document.getElementById("cfNext");
@@ -412,7 +417,6 @@ function buildDots() {
 
 function renderCF() {
   const slides = cfTrack.querySelectorAll(".cf-slide");
-  const n = slides.length;
 
   slides.forEach((slide, i) => {
     const offset = i - cfIndex;
@@ -426,22 +430,19 @@ function renderCF() {
     }
 
     const sign    = Math.sign(offset) || 0;
-    const tx      = offset * SLIDE_W - sign * SLIDE_W * SIDE_TRANS * Math.min(absOff, 1);
+    // centre each slide around 0; active slide sits at translateX(0)
+    const tx      = offset * SLIDE_W;
     const ry      = absOff === 0 ? 0 : -sign * SIDE_ROT;
     const scale   = absOff === 0 ? 1 : Math.pow(SIDE_SCALE, absOff);
     const opacity = absOff === 0 ? 1 : Math.pow(SIDE_OPACITY, absOff) + 0.1;
     const z       = 100 - absOff * 10;
 
-    slide.style.transform  = `translateX(${tx}px) rotateY(${ry}deg) scale(${scale})`;
+    slide.style.transform  = `translateX(calc(-50% + ${tx}px)) rotateY(${ry}deg) scale(${scale})`;
     slide.style.opacity    = opacity;
     slide.style.zIndex     = z;
     slide.style.pointerEvents = "auto";
     slide.classList.toggle("active", absOff === 0);
   });
-
-  // title
-  const cur = cfImages[cfIndex];
-  cfTitle.textContent = cur ? cur.filename.replace(/^[0-9a-f-]+_/, "").replace(/_/g, " ") : "";
 
   // dots
   cfDots.querySelectorAll(".cf-dot").forEach((d, i) => d.classList.toggle("active", i === cfIndex));
@@ -529,3 +530,55 @@ function resetAutoplay() {
   clearInterval(cfAutoplay);
   startAutoplay();
 }
+
+// ── SRH002 — Search filter ──
+
+const searchInput = document.getElementById("searchInput");
+const searchClear = document.getElementById("searchClear");
+
+searchInput.addEventListener("input", () => {
+  const q = searchInput.value.trim().toLowerCase();
+  searchClear.classList.toggle("visible", q.length > 0);
+  document.querySelectorAll(".gallery-item").forEach(item => {
+    const name = (item.dataset.filename || "").toLowerCase();
+    item.style.display = name.includes(q) ? "" : "none";
+  });
+});
+
+searchClear.addEventListener("click", () => {
+  searchInput.value = "";
+  searchClear.classList.remove("visible");
+  document.querySelectorAll(".gallery-item").forEach(item => item.style.display = "");
+  searchInput.focus();
+});
+
+// ── Liquid Glass dynamic lighting ──
+// Attaches per-element mousemove so overflow:hidden doesn't matter.
+// Uses CSS custom props --mx/--my fed into a ::before pseudo-element.
+
+function attachGlassLight(el) {
+  if (el.dataset.glassLit) return;
+  el.dataset.glassLit = "1";
+  el.addEventListener("mousemove", (e) => {
+    const r = el.getBoundingClientRect();
+    const x = ((e.clientX - r.left) / r.width  * 100).toFixed(1);
+    const y = ((e.clientY - r.top)  / r.height * 100).toFixed(1);
+    el.style.setProperty("--mx", x + "%");
+    el.style.setProperty("--my", y + "%");
+    el.classList.add("glass-lit");
+  });
+  el.addEventListener("mouseleave", () => el.classList.remove("glass-lit"));
+}
+
+function initGlassLights() {
+  document.querySelectorAll(".glass-card, .glass-button, .glass-nav, .glass-search, .toggle-track").forEach(attachGlassLight);
+}
+
+// Run on load and after gallery renders
+initGlassLights();
+
+// Re-run after gallery items are added (MutationObserver)
+new MutationObserver(initGlassLights).observe(
+  document.getElementById("galleryGrid"),
+  { childList: true }
+);
