@@ -64,6 +64,7 @@ def edit(filename):
 
 
 
+@app.route("/delete/<filename>", methods=["DELETE"])
 def delete(filename):
     try:
         s3.delete_file(filename)

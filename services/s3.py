@@ -6,11 +6,13 @@ from botocore.exceptions import ClientError
 
 
 def _client():
+    region = os.environ["AWS_REGION"]
     return boto3.client(
         "s3",
-        region_name=os.environ["AWS_REGION"],
+        region_name=region,
         aws_access_key_id=os.environ["AWS_ACCESS_KEY_ID"],
         aws_secret_access_key=os.environ["AWS_SECRET_ACCESS_KEY"],
+        endpoint_url=f"https://s3.{region}.amazonaws.com",
     )
 
 
@@ -95,6 +97,7 @@ def edit_file(filename, brightness, saturation):
 
 
 
+def delete_file(filename):
     client = _client()
     client.delete_object(Bucket=BUCKET(), Key=filename)
     client.delete_object(Bucket=BUCKET(), Key=THUMB_PREFIX + filename)

@@ -244,11 +244,14 @@ function addGalleryItem({ filename, url, thumb_url, size }) {
   });
 
   const img = document.createElement("img");
-  img.src = thumb_url;
   img.alt = filename;
   img.loading = "lazy";
   img.style.cursor = "pointer";
+  img.style.opacity = "0";
+  img.style.transition = "opacity 0.3s ease";
+  img.onload = () => { img.style.opacity = "1"; };
   img.onerror = () => { img.onerror = null; img.src = url; };
+  img.src = thumb_url;
   img.addEventListener("click", () => openLightbox(url, filename));
 
   const footer = document.createElement("div");
